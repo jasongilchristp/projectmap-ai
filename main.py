@@ -20,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastmcp import FastMCP
+from typing import Optional
 
 import database as db
 
@@ -118,7 +119,7 @@ def api_project_summary(project: str):
 
 
 @app.get("/api/timesheet/{employee_name}")
-def api_get_timesheet(employee_name: str, start_date: str = None, end_date: str = None):
+def api_get_timesheet(employee_name: str, start_date: Optional[str] = None, end_date: Optional[str] = None):
     return db.get_timesheet(employee_name, start_date, end_date)
 
 
