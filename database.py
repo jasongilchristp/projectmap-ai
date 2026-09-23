@@ -5,112 +5,25 @@ time: logging billable hours against projects, and summarizing them.
 """
 
 import os
-import shutil
 import sqlite3
-import stat
-import tempfile
 from pathlib import Path
 
 
-def _is_path_writable(path: Path) -> bool:
-    """Test whether a SQLite database file and its parent directory can be written to."""
-    try:
-        parent = path.parent
-        if not parent.exists():
-            parent.mkdir(parents=True, exist_ok=True)
-
-        # Check directory writability (needed for SQLite rollback journal & lock creation)
-        test_file = parent / f".write_test_{os.getpid()}"
-        with open(test_file, "a") as f:
-            pass
-        test_file.unlink(missing_ok=True)
-
-        # If database file already exists, check file writability
-        if path.exists():
-            if not os.access(path, os.W_OK):
-                return False
-            with open(path, "a") as f:
-                pass
-        return True
-    except (OSError, PermissionError):
-        return False
-
-
-def get_db_path() -> Path:
-    """
-    Determine the SQLite database path.
-    1. Check for explicit environment variables: PROJECTMAP_DB_PATH or DATABASE_PATH.
-    2. Check if the local project directory is writable.
-    3. In read-only filesystems (e.g. Prefect Horizon deployments, Docker read-only, AWS Lambda),
-       automatically fallback to a writable temporary directory (/tmp/projectmapai.db).
-    """
-    env_path = os.environ.get("PROJECTMAP_DB_PATH") or os.environ.get("DATABASE_PATH")
-    if env_path:
-        target = Path(env_path)
-        try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-        except Exception:
-            pass
-        return target
-
-    local_path = Path(__file__).parent / "projectmapai.db"
-    if _is_path_writable(local_path):
-        return local_path
-
-    # Read-only environment detected (e.g. Prefect Horizon / container checkout)
-    temp_dir = Path(tempfile.gettempdir())
-    temp_path = temp_dir / "projectmapai.db"
-
-    # If an existing local DB exists, copy it to temp_path so existing data isn't lost
-    if local_path.exists() and not temp_path.exists():
-        try:
-            shutil.copy2(local_path, temp_path)
-            try:
-                os.chmod(temp_path, stat.S_IWRITE | stat.S_IREAD)
-            except Exception:
-                pass
-        except Exception:
-            pass
-
-    return temp_path
-
-
-DB_PATH = get_db_path()
-
-
-def _migrate_to_temp_if_readonly():
-    """Migrate the database to a writable temporary directory if read-only filesystem error is encountered."""
-    global DB_PATH
-    temp_path = Path(tempfile.gettempdir()) / "projectmapai.db"
-    old_path = DB_PATH
-    if old_path != temp_path and old_path.exists():
-        try:
-            shutil.copy2(old_path, temp_path)
-            try:
-                os.chmod(temp_path, stat.S_IWRITE | stat.S_IREAD)
-            except Exception:
-                pass
-        except Exception:
-            pass
-    DB_PATH = temp_path
-    os.environ["PROJECTMAP_DB_PATH"] = str(temp_path)
-    _do_init_db()
+DB_PATH = Path(
+    os.environ.get(
+        "PROJECTMAPAI_DB_PATH",
+        "projectmapai.db"
+    )
+)
 
 
 def get_connection():
-    global DB_PATH
-    DB_PATH = get_db_path()
-    conn = sqlite3.connect(DB_PATH, timeout=15.0)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    try:
-        conn.execute("PRAGMA busy_timeout = 15000")
-        conn.execute("PRAGMA foreign_keys = ON")
-    except Exception:
-        pass
     return conn
 
 
-def _do_init_db():
+def init_db():
     conn = get_connection()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS time_entries (
@@ -140,16 +53,6 @@ def _do_init_db():
     conn.close()
 
 
-def init_db():
-    try:
-        _do_init_db()
-    except sqlite3.OperationalError as e:
-        if "readonly database" in str(e).lower():
-            _migrate_to_temp_if_readonly()
-        else:
-            raise
-
-
 def _row_to_dict(row) -> dict:
     return {
         "id": row["id"],
@@ -168,7 +71,9 @@ def list_all_entries() -> list[dict]:
     return [_row_to_dict(r) for r in rows]
 
 
-def _do_log_time(employee_name: str, project: str, entry_date: str, hours: float, description: str = "") -> dict:
+def log_time(employee_name: str, project: str, entry_date: str, hours: float, description: str = "") -> dict:
+    if hours <= 0:
+        raise ValueError("hours must be a positive number")
     conn = get_connection()
     cursor = conn.execute(
         "INSERT INTO time_entries (employee_name, project, entry_date, hours, description) "
@@ -180,18 +85,6 @@ def _do_log_time(employee_name: str, project: str, entry_date: str, hours: float
     row = conn.execute("SELECT * FROM time_entries WHERE id = ?", (new_id,)).fetchone()
     conn.close()
     return _row_to_dict(row)
-
-
-def log_time(employee_name: str, project: str, entry_date: str, hours: float, description: str = "") -> dict:
-    if hours <= 0:
-        raise ValueError("hours must be a positive number")
-    try:
-        return _do_log_time(employee_name, project, entry_date, hours, description)
-    except sqlite3.OperationalError as e:
-        if "readonly database" in str(e).lower():
-            _migrate_to_temp_if_readonly()
-            return _do_log_time(employee_name, project, entry_date, hours, description)
-        raise
 
 
 def get_timesheet(employee_name: str, start_date: str | None = None, end_date: str | None = None) -> list[dict]:
@@ -209,26 +102,11 @@ def get_timesheet(employee_name: str, start_date: str | None = None, end_date: s
     conn.close()
     return [_row_to_dict(r) for r in rows]
 
-
-def execute_query(query: str, params: list | tuple | None = None) -> list[dict]:
-    if params is None:
-        params = []
-    try:
-        conn = get_connection()
-        rows = conn.execute(query, params).fetchall()
-        conn.commit()
-        conn.close()
-        return [_row_to_dict(r) for r in rows]
-    except sqlite3.OperationalError as e:
-        if "readonly database" in str(e).lower():
-            _migrate_to_temp_if_readonly()
-            conn = get_connection()
-            rows = conn.execute(query, params).fetchall()
-            conn.commit()
-            conn.close()
-            return [_row_to_dict(r) for r in rows]
-        raise
-
+def execute_query(query: str, params: list = []) -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [_row_to_dict(r) for r in rows]
 
 def list_projects() -> list[str]:
     conn = get_connection()
