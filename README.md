@@ -1,6 +1,6 @@
 # ProjectMapAI
 
-ProjectMapAI is a timesheet MCP server for logging billable hours and querying entries and project totals through an AI assistant. It uses FastMCP and SQLite. The existing FastAPI app also serves a local browser interface; deploying the MCP server alone to Prefect Horizon does **not** establish that the website is publicly hosted.
+ProjectMapAI is a timesheet MCP server for logging billable hours and querying entries and project totals through an AI assistant. It uses FastMCP and SQLite.
 
 ## MCP capabilities
 
