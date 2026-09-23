@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+#secrets
+.env
+
+#others
+__pycache__
+*.db
