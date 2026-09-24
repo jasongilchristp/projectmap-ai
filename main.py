@@ -64,7 +64,7 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": 0,
             "total_hours": 0.0,
             "summary": f"No entries found for {employee_name} starting {week_start}.",
-            "model": "openai/gpt-oss-120b",
+            "model": "openai/gpt-oss-20b",
         }
 
     total_hours = sum(e["hours"] for e in entries)
@@ -80,12 +80,12 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": len(entries),
             "total_hours": total_hours,
             "summary": "GROQ_API_KEY is not configured on the server. Please add it to your .env file.",
-            "model": "openai/gpt-oss-120b",
+            "model": "openai/gpt-oss-20b",
         }
 
     try:
         response = groq_client.responses.create(
-            model="openai/gpt-oss-120b",
+            model="openai/gpt-oss-20b",
             input=f"Summarize this week's work for {employee_name} in two friendly sentences:\n\n{entries_text}",
         )
         text = ""
@@ -101,7 +101,7 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": len(entries),
             "total_hours": total_hours,
             "summary": text or "Could not generate a summary.",
-            "model": "openai/gpt-oss-120b",
+            "model": "openai/gpt-oss-20b",
         }
     except Exception as err:
         return {
@@ -111,7 +111,7 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": len(entries),
             "total_hours": total_hours,
             "summary": f"AI service error: {str(err)}",
-            "model": "openai/gpt-oss-120b",
+            "model": "openai/gpt-oss-20b",
         }
 
 
@@ -141,6 +141,20 @@ def get_project_summary(project: str) -> dict:
 def list_projects() -> list[str]:
     """List every project that has at least one logged time entry."""
     return db.list_projects()
+
+
+@mcp.tool
+def update_time_entry(entry_id: int, employee_name: str, project: str, entry_date: str, hours: float, description: str = "") -> dict:
+    """Update an existing time entry by its ID."""
+    return db.update_entry(entry_id, employee_name, project, entry_date, hours, description)
+
+
+@mcp.tool
+def delete_time_entry(entry_id: int) -> dict:
+    """Delete a time entry by its ID."""
+    db.delete_entry(entry_id)
+    return {"status": "deleted", "id": entry_id}
+
 
 
 @mcp.resource("timesheet://projects")
@@ -201,6 +215,17 @@ mcp_app = mcp.http_app(path="/")
 app = FastAPI(title="ProjectMapAI", lifespan=mcp_app.lifespan)
 
 
+@app.middleware("http")
+async def add_no_cache_headers(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/static") or request.url.path == "/":
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
+
 class NewEntry(BaseModel):
     employee_name: str
     project: str
@@ -224,9 +249,53 @@ class LogConfirmationRequest(BaseModel):
     confirmed: Optional[bool] = None
 
 
+class UpdateEntry(BaseModel):
+    employee_name: str
+    project: str
+    entry_date: str
+    hours: float
+    description: str = ""
+
+
 @app.get("/api/entries")
 def api_list_entries():
     return db.list_all_entries()
+
+
+@app.get("/api/entries/{entry_id}")
+def api_get_entry(entry_id: int):
+    entry = db.get_entry_by_id(entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    return entry
+
+
+@app.put("/api/entries/{entry_id}")
+def api_update_entry(entry_id: int, entry: UpdateEntry):
+    if entry.hours <= 0:
+        raise HTTPException(status_code=400, detail="hours must be a positive number")
+    try:
+        updated = db.update_entry(
+            entry_id,
+            entry.employee_name,
+            entry.project,
+            entry.entry_date,
+            entry.hours,
+            entry.description,
+        )
+        return {"status": "updated", "entry": updated}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.delete("/api/entries/{entry_id}")
+def api_delete_entry(entry_id: int):
+    try:
+        db.delete_entry(entry_id)
+        return {"status": "deleted", "id": entry_id}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 
 
 @app.post("/api/entries")
@@ -371,7 +440,7 @@ def api_mcp_tools():
             },
             {
                 "name": "summarize_week",
-                "description": "Summarize one employee's week in plain language, using an LLM (Groq openai/gpt-oss-120b).",
+                "description": "Summarize one employee's week in plain language, using an LLM (Groq openai/gpt-oss-20b).",
                 "parameters": ["employee_name", "week_start"],
                 "category": "ai",
             },
@@ -387,13 +456,32 @@ def api_mcp_tools():
                 "parameters": [],
                 "category": "demo",
             },
+            {
+                "name": "update_time_entry",
+                "description": "Update an existing time entry by ID.",
+                "parameters": ["entry_id", "employee_name", "project", "entry_date", "hours", "description"],
+                "category": "core",
+            },
+            {
+                "name": "delete_time_entry",
+                "description": "Delete an existing time entry by ID.",
+                "parameters": ["entry_id"],
+                "category": "core",
+            },
         ],
     }
 
 
 @app.get("/")
 def serve_index():
-    return FileResponse("static/index.html")
+    return FileResponse(
+        "static/index.html",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")

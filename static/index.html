@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ProjectMapAI - Industrial Tech Telemetry & MCP Intelligence Console">
-  <title>PROJECTMAP // INDUSTRIAL DATA ACQUISITION CONSOLE [v4.0]</title>
+  <meta name="description" content="ProjectMapAI - Industrial Timesheet Platform & FastMCP Intelligence Console">
+  <title>ProjectMapAI // Industrial Timesheet & FastMCP Intelligence Console [v4.0]</title>
 
   <!-- Early theme initialization -->
   <script>
@@ -23,8 +23,9 @@
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=4.2">
 </head>
+
 
 <body>
 
@@ -35,12 +36,12 @@
         <span class="hazard-badge">SYS.SPEC // MIL-810G</span>
         <span class="strip-meta">HOST: 127.0.0.1:8000</span>
         <span class="strip-meta">PROTO: FASTMCP_v4.0</span>
-        <span class="strip-meta">ARCH: x86_64_SQLITE</span>
+        <span class="strip-meta">ARCH: CLOUD_MYSQL // FILESS.IO</span>
       </div>
       <div class="strip-right">
         <span class="status-indicator">
           <span class="hazard-indicator-box">■</span>
-          <span class="status-text">ACQUISITION_ENGINE_ONLINE</span>
+          <span class="status-text">PROJECTMAPAI_ENGINE_ONLINE</span>
         </span>
         <span class="utc-clock" id="systemClock">SYS_TIME: 2026.09.23 // 20:51:00</span>
       </div>
@@ -56,15 +57,16 @@
         </div>
         <div>
           <div class="brand-title-wrap">
-            <h1 class="brand-title">PROJECTMAP<span class="brand-subtext">//AI_CORE</span><span
-                class="blinking-cursor">█</span></h1>
+            <h1 class="brand-title">ProjectMap<span class="brand-accent">AI</span><span
+                class="brand-subtext">//CORE</span><span class="blinking-cursor">█</span></h1>
             <span class="badge badge-mcp" id="mcpHeaderBadge" title="FastMCP 4.0 Server Active">
-              <span class="hazard-dot"></span> [FASTMCP: 7 TOOLS MOUNTED]
+              <span class="hazard-dot"></span> [FASTMCP: 9 TOOLS MOUNTED]
             </span>
           </div>
-          <p class="tagline">DATA_ACQUISITION_UNIT // ENTERPRISE_TIME_LEDGER</p>
+          <p class="tagline">PROJECTMAPAI INTELLIGENCE ENGINE // ENTERPRISE TIME LEDGER</p>
         </div>
       </div>
+
 
       <div class="header-actions">
         <!-- Theme Toggle Button -->
@@ -97,12 +99,13 @@
     <div class="ticker-label">[TELEMETRY_STREAM]</div>
     <div class="ticker-content-wrap">
       <div class="ticker-track">
-        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-120b //
-          SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: MYSQL (Filess.io) //
+        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-20b //
+          SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: FILESS.IO_CLOUD_MYSQL //
           ZERO_DATA_LOSS_PIPELINE &gt;&gt;&nbsp;</span>
-        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-120b //
-          SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: MYSQL (Filess.io) //
+        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-20b //
+          SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: FILESS.IO_CLOUD_MYSQL //
           ZERO_DATA_LOSS_PIPELINE &gt;&gt;&nbsp;</span>
+
       </div>
     </div>
   </div>
@@ -230,7 +233,7 @@
           <div class="header-titles">
             <h2 class="section-title">// CHANNEL_01 :: RAW_ACTIVITY_LEDGER</h2>
             <p class="section-subtitle">Chronological ledger of project activity, resource allocations, and logged hours
-              from SQLite data store.</p>
+              from ProjectMapAI cloud persistence layer.</p>
           </div>
           <div class="panel-rack-id">RACK: 0x01_REC</div>
         </div>
@@ -271,6 +274,7 @@
                 <th>[#] HOURS_LOGGED</th>
                 <th>[#] TIMESTAMP</th>
                 <th>[#] LOG_TRANSACTION_REMARK</th>
+                <th style="width: 140px; text-align: center;">[#] ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -283,8 +287,9 @@
         <div id="entriesEmptyState" class="empty-state" style="display: none;">
           <div class="empty-state-glyph">[NULL_RECORD_SET]</div>
           <h4>NO MATCHING INGESTION RECORDS</h4>
-          <p>The query filter returned zero rows in the active SQLite ledger partition.</p>
+          <p>The query filter returned zero rows in the active ProjectMapAI cloud ledger partition.</p>
         </div>
+
       </div>
     </section>
 
@@ -475,8 +480,9 @@
           <button type="button" class="studio-pill" data-subtab="registry" id="pill-registry" role="tab"
             aria-selected="false">
             <span>[04 // PROTOCOL_REGISTRY]</span>
-            <span class="micro-badge">7 TOOLS</span>
+            <span class="micro-badge" id="mcpToolsTabBadge">9 TOOLS</span>
           </button>
+
         </div>
 
         <div class="studio-engine-pill">
@@ -721,7 +727,8 @@
               </div>
               <h3 class="studio-card-title">REAL-TIME_PROGRESS_STREAMING (SSE)</h3>
               <p class="studio-card-subtitle">Asynchronous execution with incremental feedback via FastMCP
-                <code>ctx.report_progress</code> and FastAPI SSE.</p>
+                <code>ctx.report_progress</code> and FastAPI SSE.
+              </p>
             </div>
 
             <div class="stream-btn-group">
@@ -793,7 +800,7 @@
                 graphs, and developer introspection.</p>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <span id="mcpToolsCountBadge" class="registry-counter-badge">[7_TOOLS_LOADED]</span>
+              <span id="mcpToolsCountBadge" class="registry-counter-badge">[9_TOOLS_LOADED]</span>
               <button id="btnRefreshMcpTools" class="btn btn-secondary btn-sm" type="button">
                 <span>[REFRESH_SCHEMA]</span>
               </button>
@@ -803,13 +810,14 @@
           <!-- Filter & Search Toolbar -->
           <div class="registry-toolbar" style="margin-top: 14px;">
             <div class="registry-filter-chips">
-              <button type="button" class="reg-filter-btn active" data-category="all">[ALL (7)]</button>
+              <button type="button" class="reg-filter-btn active" data-category="all">[ALL (9)]</button>
               <button type="button" class="reg-filter-btn" data-category="ai">[GROQ_AI (1)]</button>
               <button type="button" class="reg-filter-btn" data-category="interactive">[ELICIT (1)]</button>
               <button type="button" class="reg-filter-btn" data-category="demo">[STREAM (1)]</button>
-              <button type="button" class="reg-filter-btn" data-category="core">[DATABASE (3)]</button>
+              <button type="button" class="reg-filter-btn" data-category="core">[DATABASE (5)]</button>
               <button type="button" class="reg-filter-btn" data-category="analytics">[ANALYTICS (1)]</button>
             </div>
+
             <div class="registry-search-wrap">
               <span class="search-prefix">&gt;&gt; FIND:</span>
               <input id="mcpToolSearchInput" type="text" class="registry-search-input"
@@ -864,24 +872,145 @@
     </div>
   </div>
 
+  <!-- Edit Entry Modal -->
+  <div id="editEntryModal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true"
+    aria-labelledby="editModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-icon-warning" style="border-color: var(--hazard-orange); color: var(--hazard-orange);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="badge badge-mcp" style="margin-bottom: 4px;">// PROJECTMAPAI_LEDGER_EDITOR</span>
+          <h3 id="editModalTitle" class="modal-title">UPDATE_ACTIVITY_ENTRY</h3>
+        </div>
+      </div>
+
+      <form id="editEntryForm" novalidate>
+        <input type="hidden" id="editEntryId">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Target Entry Quick Selector -->
+          <div class="form-group" id="editEntrySelectGroup">
+            <label for="editEntrySelect" class="form-label">[TARGET_LEDGER_TRANSACTION]</label>
+            <div class="select-wrapper">
+              <select id="editEntrySelect" class="form-control" aria-label="Select entry to edit"></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editEmployeeInput" class="form-label">[OPERATOR_NAME] <span
+                class="required-star">*</span></label>
+            <input id="editEmployeeInput" class="form-control" type="text" required>
+          </div>
+
+          <div class="form-group">
+            <label for="editProjectInput" class="form-label">[PROJECT_CODE] <span class="required-star">*</span></label>
+            <input id="editProjectInput" class="form-control" type="text" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label for="editDateInput" class="form-label">[TRANSACTION_DATE] <span
+                  class="required-star">*</span></label>
+              <input id="editDateInput" class="form-control" type="date" required>
+            </div>
+            <div class="form-group">
+              <label for="editHoursInput" class="form-label">[DURATION_HOURS] <span
+                  class="required-star">*</span></label>
+              <input id="editHoursInput" class="form-control" type="number" step="0.25" min="0.25" max="24" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editDescInput" class="form-label">[LOG_REMARK_SPECIFICATION]</label>
+            <input id="editDescInput" class="form-control" type="text" placeholder="Remarks or work description">
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="cancelEditBtn" class="btn btn-secondary" type="button">[CANCEL]</button>
+          <button id="saveEditBtn" class="btn btn-primary" type="submit">
+            <span>[SAVE_CHANGES]</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteEntryModal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true"
+    aria-labelledby="deleteModalTitle">
+    <div class="modal-card" style="border-color: #ef4444;">
+      <div class="modal-header">
+        <div class="modal-icon-warning"
+          style="border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="badge badge-mcp" style="margin-bottom: 4px; border-color: #ef4444; color: #ef4444;">//
+            PURGE_CONFIRMATION</span>
+          <h3 id="deleteModalTitle" class="modal-title" style="color: #f87171;">PURGE_TRANSACTION_RECORD</h3>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group" id="deleteEntrySelectGroup" style="margin-bottom: 12px;">
+          <label for="deleteEntrySelect" class="form-label">[SELECT_RECORD_TO_PURGE]</label>
+          <div class="select-wrapper">
+            <select id="deleteEntrySelect" class="form-control" aria-label="Select entry to delete"></select>
+          </div>
+        </div>
+
+        <p class="modal-prompt-text">
+          Are you sure you want to permanently delete this entry from the ProjectMapAI cloud ledger?
+        </p>
+
+        <div id="deleteModalPreview" class="modal-preview-box">
+          <!-- Populated by JS -->
+        </div>
+
+        <p class="modal-note" style="color: #f87171;">
+          &gt;&gt; WARNING: THIS ACTION CANNOT BE UNDONE.
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancelDeleteBtn" class="btn btn-secondary" type="button">[ABORT_PURGE]</button>
+        <button id="confirmDeleteBtn" class="btn btn-primary" type="button"
+          style="background: #ef4444; border-color: #ef4444; color: #ffffff;">
+          <span>[CONFIRM_PURGE]</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Industrial Monolith Footer Strip -->
   <footer class="app-footer">
     <div class="footer-content">
       <div class="footer-badge">
-        <span class="tech-tag">PROJECTMAP // CORE</span>
+        <span class="tech-tag">PROJECTMAPAI // CORE</span>
         <span class="tech-tag">FASTMCP_v4.0</span>
         <span class="tech-tag">FASTAPI_REST</span>
         <span class="tech-tag">GROQ_API</span>
-        <span class="tech-tag">SQLITE_DATASTORE</span>
+        <span class="tech-tag">FILESS.IO_MYSQL</span>
       </div>
-      <p class="footer-note">INDUSTRIAL BRUTALIST DATA ACQUISITION SUITE // DEVELOPED BY JASON GILCHRIST P</p>
+      <p class="footer-note">PROJECTMAPAI • ENTERPRISE TIME &amp; FASTMCP TELEMETRY PLATFORM // DEVELOPED BY JASON
+        GILCHRIST P</p>
     </div>
   </footer>
+
 
   <!-- Toast Notification Hub -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=4.3"></script>
 </body>
+
 
 </html>

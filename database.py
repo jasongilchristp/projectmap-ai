@@ -206,3 +206,73 @@ def get_project_summary(project: str) -> dict:
         if conn.is_connected():
             cursor.close()
             conn.close()
+
+
+def get_entry_by_id(entry_id: int) -> dict | None:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM time_entries WHERE id = %s", (entry_id,))
+        row = cursor.fetchone()
+        return _row_to_dict(row)
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+
+def update_entry(
+    entry_id: int,
+    employee_name: str,
+    project: str,
+    entry_date: str,
+    hours: float,
+    description: str = "",
+) -> dict:
+    if hours <= 0:
+        raise ValueError("hours must be a positive number")
+
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+        # Check existence first
+        cursor.execute("SELECT id FROM time_entries WHERE id = %s", (entry_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            raise ValueError(f"Entry with id {entry_id} not found")
+
+        cursor.execute(
+            """
+            UPDATE time_entries
+            SET employee_name = %s, project = %s, entry_date = %s, hours = %s, description = %s
+            WHERE id = %s
+            """,
+            (employee_name, project, entry_date, hours, description, entry_id),
+        )
+        conn.commit()
+
+        cursor.execute("SELECT * FROM time_entries WHERE id = %s", (entry_id,))
+        row = cursor.fetchone()
+        return _row_to_dict(row)
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+
+def delete_entry(entry_id: int) -> bool:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM time_entries WHERE id = %s", (entry_id,))
+        existing = cursor.fetchone()
+        if not existing:
+            raise ValueError(f"Entry with id {entry_id} not found")
+
+        cursor.execute("DELETE FROM time_entries WHERE id = %s", (entry_id,))
+        conn.commit()
+        return True
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()

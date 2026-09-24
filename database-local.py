@@ -131,4 +131,56 @@ def get_project_summary(project: str) -> dict:
         "total_hours": sum(by_employee.values()),
         "by_employee": by_employee,
     }
+
+
+def get_entry_by_id(entry_id: int) -> dict | None:
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM time_entries WHERE id = ?", (entry_id,)).fetchone()
+    conn.close()
+    return _row_to_dict(row) if row else None
+
+
+def update_entry(
+    entry_id: int,
+    employee_name: str,
+    project: str,
+    entry_date: str,
+    hours: float,
+    description: str = "",
+) -> dict:
+    if hours <= 0:
+        raise ValueError("hours must be a positive number")
+
+    conn = get_connection()
+    existing = conn.execute("SELECT id FROM time_entries WHERE id = ?", (entry_id,)).fetchone()
+    if not existing:
+        conn.close()
+        raise ValueError(f"Entry with id {entry_id} not found")
+
+    conn.execute(
+        """
+        UPDATE time_entries
+        SET employee_name = ?, project = ?, entry_date = ?, hours = ?, description = ?
+        WHERE id = ?
+        """,
+        (employee_name, project, entry_date, hours, description, entry_id),
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM time_entries WHERE id = ?", (entry_id,)).fetchone()
+    conn.close()
+    return _row_to_dict(row)
+
+
+def delete_entry(entry_id: int) -> bool:
+    conn = get_connection()
+    existing = conn.execute("SELECT id FROM time_entries WHERE id = ?", (entry_id,)).fetchone()
+    if not existing:
+        conn.close()
+        raise ValueError(f"Entry with id {entry_id} not found")
+
+    conn.execute("DELETE FROM time_entries WHERE id = ?", (entry_id,))
+    conn.commit()
+    conn.close()
+    return True
+
     

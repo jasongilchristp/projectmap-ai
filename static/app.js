@@ -276,7 +276,7 @@ function renderEntriesTable() {
   tbody.innerHTML = filtered.map(e => {
     const initials = getInitials(e.employee_name);
     return `
-      <tr>
+      <tr data-entry-id="${e.id}">
         <td>
           <div class="contributor-cell">
             <span class="avatar-badge">${escapeHtml(initials)}</span>
@@ -295,10 +295,29 @@ function renderEntriesTable() {
         <td>
           <span class="desc-text">${e.description ? escapeHtml(e.description) : '<span style="color:var(--text-muted)">// ZERO_LOG_REMARKS</span>'}</span>
         </td>
+        <td style="text-align: center;">
+          <div class="table-actions">
+            <button type="button" class="action-btn action-edit" onclick="openEditModal(${e.id})" title="Edit Entry #${e.id}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span>EDIT</span>
+            </button>
+            <button type="button" class="action-btn action-delete" onclick="openDeleteModal(${e.id})" title="Delete Entry #${e.id}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>DEL</span>
+            </button>
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
 }
+
 
 function initSearchAndFilter() {
   const searchInput = document.getElementById('searchInput');
@@ -1194,12 +1213,13 @@ function initMcpLab() {
             confirmationResultContent.innerHTML = `
               <div style="color:var(--emerald-400);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
                 <span>✓</span>
-                <span>Human Approved &amp; Logged: Entry #${secondData.entry.id} saved to SQLite!</span>
+                <span>Human Approved &amp; Logged: Entry #${secondData.entry.id} saved to ProjectMapAI Cloud Database!</span>
               </div>
               <p style="margin:0;color:var(--text-secondary);font-size:12px;">
                 ${escapeHtml(employee)} • ${escapeHtml(project)} • <strong>${hours}h</strong>
               </p>
             `;
+
             showToast(`Confirmed & logged ${hours}h!`, 'success');
             await fetchEntries();
             await fetchProjects();
@@ -1421,8 +1441,9 @@ const MCP_TOOL_METAS = {
     iconBoxClass: 'icon-box-mono',
     badgeClass: 'badge-cat-mono',
     badgeLabel: '[DATABASE]',
-    capability: 'Direct SQLite Entry Logging',
+    capability: 'Direct Cloud Database Entry Logging',
     method: 'POST',
+
     endpoint: '/api/entries',
     paramTypes: {
       employee_name: { type: 'string', required: true, desc: 'Contributor name' },
@@ -1474,6 +1495,39 @@ const MCP_TOOL_METAS = {
     endpoint: '/api/projects',
     paramTypes: {},
     actionLabel: '[BROWSE_PROJECTS]',
+    actionTab: 'entries',
+  },
+  update_time_entry: {
+    icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+    iconBoxClass: 'icon-box-mono',
+    badgeClass: 'badge-cat-mono',
+    badgeLabel: '[DATABASE]',
+    capability: 'Ledger Entry Mutation',
+    method: 'PUT',
+    endpoint: '/api/entries/{id}',
+    paramTypes: {
+      entry_id: { type: 'integer', required: true, desc: 'Target ledger transaction ID' },
+      employee_name: { type: 'string', required: true, desc: 'Contributor operator name' },
+      project: { type: 'string', required: true, desc: 'Target project code' },
+      entry_date: { type: 'YYYY-MM-DD', required: true, desc: 'Work log date (YYYY-MM-DD)' },
+      hours: { type: 'number', required: true, desc: 'Logged duration in hours (> 0)' },
+      description: { type: 'string', required: false, desc: 'Task notes or activity remark' },
+    },
+    actionLabel: '[EXECUTE_UPDATE]',
+    actionTab: 'entries',
+  },
+  delete_time_entry: {
+    icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+    iconBoxClass: 'icon-box-mono',
+    badgeClass: 'badge-cat-mono',
+    badgeLabel: '[DATABASE]',
+    capability: 'Ledger Entry Purge',
+    method: 'DELETE',
+    endpoint: '/api/entries/{id}',
+    paramTypes: {
+      entry_id: { type: 'integer', required: true, desc: 'Target ledger transaction ID to purge' },
+    },
+    actionLabel: '[EXECUTE_PURGE]',
     actionTab: 'entries',
   },
 };
@@ -1544,7 +1598,7 @@ function renderMcpToolsGrid() {
       actionTab: 'mcp',
     };
 
-    const methodClass = meta.method === 'GET' ? 'method-get' : 'method-post';
+    const methodClass = 'method-' + (meta.method || 'post').toLowerCase();
 
     const paramsList = (t.parameters || []).map(p => {
       const pInfo = meta.paramTypes[p] || { type: 'any', required: true, desc: p };
@@ -1608,14 +1662,30 @@ function renderMcpToolsGrid() {
     btn.addEventListener('click', () => {
       const toolName = btn.dataset.toolAction;
       const meta = MCP_TOOL_METAS[toolName];
-      if (meta) {
-        if (meta.actionSubtab) {
-          switchMcpSubpanel(meta.actionSubtab);
-          showToast(`Switched to ${meta.actionLabel}`, 'info', 1800);
-        } else if (meta.actionTab && switchTabGlobal) {
-          switchTabGlobal(meta.actionTab);
-          showToast(`Navigated to ${meta.actionTab} view`, 'info', 1800);
+      if (!meta) return;
+
+      if (toolName === 'update_time_entry') {
+        if (appState.entries && appState.entries.length > 0) {
+          openEditModal(appState.entries[0].id);
+          showToast(`Opened editor for Entry #${appState.entries[0].id}. You can also edit any entry directly from the Data Ledger table.`, 'info', 3000);
+        } else {
+          if (switchTabGlobal) switchTabGlobal('entries');
+          showToast('Data Ledger has no entries to edit. Log an entry first.', 'warning', 2500);
         }
+      } else if (toolName === 'delete_time_entry') {
+        if (appState.entries && appState.entries.length > 0) {
+          openDeleteModal(appState.entries[0].id);
+          showToast(`Opened purge confirmation for Entry #${appState.entries[0].id}. You can also purge any entry directly from the Data Ledger table.`, 'info', 3000);
+        } else {
+          if (switchTabGlobal) switchTabGlobal('entries');
+          showToast('Data Ledger has no entries to purge.', 'warning', 2500);
+        }
+      } else if (meta.actionSubtab) {
+        switchMcpSubpanel(meta.actionSubtab);
+        showToast(`Switched to ${meta.actionLabel}`, 'info', 1800);
+      } else if (meta.actionTab && switchTabGlobal) {
+        switchTabGlobal(meta.actionTab);
+        showToast(`Navigated to ${meta.actionTab} view`, 'info', 1800);
       }
     });
   });
@@ -1626,16 +1696,22 @@ function renderMcpToolsGrid() {
       const toolName = btn.dataset.copySchema;
       const tool = appState.mcpTools.find(t => t.name === toolName);
       if (tool) {
+        const meta = MCP_TOOL_METAS[tool.name] || {};
+        const paramProps = (tool.parameters || []).reduce((acc, p) => {
+          const pInfo = (meta.paramTypes && meta.paramTypes[p]) || { type: 'string', desc: p };
+          acc[p] = { type: pInfo.type, description: pInfo.desc };
+          return acc;
+        }, {});
         const schema = {
           name: tool.name,
           description: tool.description,
           parameters: {
             type: 'object',
-            properties: (tool.parameters || []).reduce((acc, p) => {
-              acc[p] = { type: 'string' };
-              return acc;
-            }, {}),
-            required: tool.parameters || [],
+            properties: paramProps,
+            required: (tool.parameters || []).filter(p => {
+              const pInfo = (meta.paramTypes && meta.paramTypes[p]);
+              return pInfo ? pInfo.required : true;
+            }),
           },
         };
         try {
@@ -1649,6 +1725,48 @@ function renderMcpToolsGrid() {
   });
 }
 
+function updateRegistryCounts() {
+  const total = appState.mcpTools.length;
+  const countBadge = document.getElementById('mcpToolsCountBadge');
+  if (countBadge) {
+    countBadge.textContent = `[${total}_TOOLS_LOADED]`;
+  }
+  const tabBadge = document.getElementById('mcpToolsTabBadge');
+  if (tabBadge) {
+    tabBadge.textContent = `${total} TOOLS`;
+  }
+  const headerBadge = document.getElementById('mcpHeaderBadge');
+  if (headerBadge) {
+    headerBadge.innerHTML = `<span class="hazard-dot"></span> [FASTMCP: ${total} TOOLS MOUNTED]`;
+  }
+
+  // Update filter buttons dynamically based on server tool categories
+  const counts = {
+    all: total,
+    ai: appState.mcpTools.filter(t => t.category === 'ai').length,
+    interactive: appState.mcpTools.filter(t => t.category === 'interactive').length,
+    demo: appState.mcpTools.filter(t => t.category === 'demo').length,
+    core: appState.mcpTools.filter(t => t.category === 'core').length,
+    analytics: appState.mcpTools.filter(t => t.category === 'analytics').length,
+  };
+
+  const labels = {
+    all: `[ALL (${counts.all})]`,
+    ai: `[GROQ_AI (${counts.ai})]`,
+    interactive: `[ELICIT (${counts.interactive})]`,
+    demo: `[STREAM (${counts.demo})]`,
+    core: `[DATABASE (${counts.core})]`,
+    analytics: `[ANALYTICS (${counts.analytics})]`,
+  };
+
+  document.querySelectorAll('.reg-filter-btn').forEach(btn => {
+    const cat = btn.dataset.category;
+    if (cat && labels[cat]) {
+      btn.textContent = labels[cat];
+    }
+  });
+}
+
 async function fetchMcpTools() {
   const grid = document.getElementById('mcpToolsGrid');
   if (!grid) return;
@@ -1659,13 +1777,8 @@ async function fetchMcpTools() {
     const data = await res.json();
     appState.mcpTools = data.tools || [];
 
+    updateRegistryCounts();
     renderMcpToolsGrid();
-
-    // Update header badge
-    const headerBadge = document.getElementById('mcpHeaderBadge');
-    if (headerBadge) {
-      headerBadge.innerHTML = `<span class="hazard-dot"></span> [FASTMCP: ${appState.mcpTools.length} TOOLS MOUNTED]`;
-    }
   } catch (err) {
     console.error('Error fetching MCP tools:', err);
     grid.innerHTML = `<div style="grid-column: 1 / -1; color:var(--status-red); padding: 16px;">Failed to load MCP tool metadata: ${escapeHtml(err.message)}</div>`;
@@ -1736,6 +1849,257 @@ function initSystemClock() {
 }
 
 // ==========================================================================
+// Ledger Entry Actions (Edit & Delete Modals & Handlers)
+// ==========================================================================
+window.openEditModal = function(entryId) {
+  const entry = appState.entries.find(e => Number(e.id) === Number(entryId)) || appState.entries[0];
+  if (!entry) {
+    showToast(`No entries found in local cache to edit`, 'error');
+    return;
+  }
+  const editModal = document.getElementById('editEntryModal');
+  if (!editModal) return;
+
+  // Populate entry quick selector dropdown if present
+  const select = document.getElementById('editEntrySelect');
+  if (select && appState.entries && appState.entries.length > 0) {
+    select.innerHTML = appState.entries.map(e => `
+      <option value="${e.id}" ${Number(e.id) === Number(entry.id) ? 'selected' : ''}>
+        #${e.id} :: ${escapeHtml(e.employee_name)} [${escapeHtml(e.project)}] - ${parseFloat(e.hours).toFixed(1)}h (${escapeHtml(e.entry_date)})
+      </option>
+    `).join('');
+  }
+
+  document.getElementById('editEntryId').value = entry.id;
+  document.getElementById('editEmployeeInput').value = entry.employee_name || '';
+  document.getElementById('editProjectInput').value = entry.project || '';
+  document.getElementById('editDateInput').value = entry.entry_date || '';
+  document.getElementById('editHoursInput').value = entry.hours || '';
+  document.getElementById('editDescInput').value = entry.description || '';
+
+  editModal.style.display = 'flex';
+};
+
+window.closeEditModal = function() {
+  const editModal = document.getElementById('editEntryModal');
+  if (editModal) editModal.style.display = 'none';
+};
+
+function renderDeletePreview(item) {
+  const preview = document.getElementById('deleteModalPreview');
+  if (!preview || !item) return;
+  preview.innerHTML = `
+    <div class="modal-preview-row">
+      <span style="color:var(--text-muted);font-weight:700;">ENTRY_ID:</span>
+      <strong style="color:var(--hazard-orange);">#${item.id}</strong>
+    </div>
+    <div class="modal-preview-row">
+      <span style="color:var(--text-muted);font-weight:700;">OPERATOR:</span>
+      <strong>${escapeHtml(item.employee_name)}</strong>
+    </div>
+    <div class="modal-preview-row">
+      <span style="color:var(--text-muted);font-weight:700;">PROJECT:</span>
+      <strong>${escapeHtml(item.project)}</strong>
+    </div>
+    <div class="modal-preview-row">
+      <span style="color:var(--text-muted);font-weight:700;">DATE // HOURS:</span>
+      <strong>${escapeHtml(item.entry_date)} // ${parseFloat(item.hours).toFixed(2)} HRS</strong>
+    </div>
+    ${item.description ? `
+    <div class="modal-preview-row">
+      <span style="color:var(--text-muted);font-weight:700;">TASK REMARK:</span>
+      <span>${escapeHtml(item.description)}</span>
+    </div>` : ''}
+  `;
+}
+
+window.openDeleteModal = function(entryId) {
+  const entry = appState.entries.find(e => Number(e.id) === Number(entryId)) || appState.entries[0];
+  if (!entry) {
+    showToast(`No entries found in local cache to purge`, 'error');
+    return;
+  }
+  const deleteModal = document.getElementById('deleteEntryModal');
+  if (!deleteModal) return;
+
+  deleteModal.dataset.entryId = String(entry.id);
+
+  // Populate entry quick selector dropdown if present
+  const select = document.getElementById('deleteEntrySelect');
+  if (select && appState.entries && appState.entries.length > 0) {
+    select.innerHTML = appState.entries.map(e => `
+      <option value="${e.id}" ${Number(e.id) === Number(entry.id) ? 'selected' : ''}>
+        #${e.id} :: ${escapeHtml(e.employee_name)} [${escapeHtml(e.project)}] - ${parseFloat(e.hours).toFixed(1)}h (${escapeHtml(e.entry_date)})
+      </option>
+    `).join('');
+  }
+
+  renderDeletePreview(entry);
+  deleteModal.style.display = 'flex';
+};
+
+window.closeDeleteModal = function() {
+  const deleteModal = document.getElementById('deleteEntryModal');
+  if (deleteModal) {
+    deleteModal.style.display = 'none';
+    delete deleteModal.dataset.entryId;
+  }
+};
+
+function initLedgerActions() {
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  const editModal = document.getElementById('editEntryModal');
+  const editForm = document.getElementById('editEntryForm');
+  const editEntrySelect = document.getElementById('editEntrySelect');
+
+  if (editEntrySelect) {
+    editEntrySelect.addEventListener('change', () => {
+      const selectedId = editEntrySelect.value;
+      const target = appState.entries.find(e => Number(e.id) === Number(selectedId));
+      if (target) {
+        document.getElementById('editEntryId').value = target.id;
+        document.getElementById('editEmployeeInput').value = target.employee_name || '';
+        document.getElementById('editProjectInput').value = target.project || '';
+        document.getElementById('editDateInput').value = target.entry_date || '';
+        document.getElementById('editHoursInput').value = target.hours || '';
+        document.getElementById('editDescInput').value = target.description || '';
+      }
+    });
+  }
+
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', closeEditModal);
+  }
+
+  if (editModal) {
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
+  }
+
+  if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editEntryId').value;
+      const employee = document.getElementById('editEmployeeInput').value.trim();
+      const project = document.getElementById('editProjectInput').value.trim();
+      const date = document.getElementById('editDateInput').value;
+      const hours = parseFloat(document.getElementById('editHoursInput').value);
+      const desc = document.getElementById('editDescInput').value.trim();
+
+      if (!employee || !project || !date || isNaN(hours) || hours <= 0) {
+        showToast('Please validate all required fields with positive hours (>0)', 'warning');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveEditBtn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'COMMITTING...';
+      }
+
+      try {
+        const res = await fetch(`/api/entries/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_name: employee,
+            project: project,
+            entry_date: date,
+            hours: hours,
+            description: desc,
+          }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Failed to update entry');
+        }
+
+        closeEditModal();
+        showToast(`Entry #${id} updated successfully!`, 'success');
+        await fetchEntries();
+        await fetchProjects();
+      } catch (err) {
+        console.error('Error updating entry:', err);
+        showToast(`Update failed: ${err.message}`, 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>[SAVE_CHANGES]</span>';
+        }
+      }
+    });
+  }
+
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+  const deleteModal = document.getElementById('deleteEntryModal');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const deleteEntrySelect = document.getElementById('deleteEntrySelect');
+
+  if (deleteEntrySelect) {
+    deleteEntrySelect.addEventListener('change', () => {
+      const selectedId = deleteEntrySelect.value;
+      const target = appState.entries.find(e => Number(e.id) === Number(selectedId));
+      if (target) {
+        deleteModal.dataset.entryId = String(target.id);
+        renderDeletePreview(target);
+      }
+    });
+  }
+
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+  }
+
+  if (deleteModal) {
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) closeDeleteModal();
+    });
+  }
+
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', async () => {
+      const id = deleteModal ? deleteModal.dataset.entryId : null;
+      if (!id) return;
+
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = 'PURGING...';
+
+      try {
+        const res = await fetch(`/api/entries/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Failed to delete entry');
+        }
+
+        closeDeleteModal();
+        showToast(`Entry #${id} purged from ProjectMapAI ledger`, 'info');
+        await fetchEntries();
+        await fetchProjects();
+      } catch (err) {
+        console.error('Error deleting entry:', err);
+        showToast(`Delete failed: ${err.message}`, 'error');
+      } finally {
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.innerHTML = '<span>[CONFIRM_PURGE]</span>';
+      }
+    });
+  }
+
+  // Keyboard shortcut: ESC closes open modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeEditModal();
+      closeDeleteModal();
+    }
+  });
+}
+
+// ==========================================================================
 // Initialization
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1747,9 +2111,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initTimesheetView();
   initMcpLab();
   initSystemClock();
+  initLedgerActions();
 
   // Load initial data
   fetchEntries();
   fetchProjects();
   fetchMcpTools();
 });
+
