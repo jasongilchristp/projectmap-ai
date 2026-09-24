@@ -56,7 +56,8 @@
         </div>
         <div>
           <div class="brand-title-wrap">
-            <h1 class="brand-title">PROJECTMAP<span class="brand-subtext">//AI_CORE</span><span class="blinking-cursor">█</span></h1>
+            <h1 class="brand-title">PROJECTMAP<span class="brand-subtext">//AI_CORE</span><span
+                class="blinking-cursor">█</span></h1>
             <span class="badge badge-mcp" id="mcpHeaderBadge" title="FastMCP 4.0 Server Active">
               <span class="hazard-dot"></span> [FASTMCP: 7 TOOLS MOUNTED]
             </span>
@@ -96,8 +97,12 @@
     <div class="ticker-label">[TELEMETRY_STREAM]</div>
     <div class="ticker-content-wrap">
       <div class="ticker-track">
-        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-20b // SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: SQLITE_WAL // ZERO_DATA_LOSS_PIPELINE &gt;&gt;&nbsp;</span>
-        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-20b // SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: SQLITE_WAL // ZERO_DATA_LOSS_PIPELINE &gt;&gt;&nbsp;</span>
+        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-120b //
+          SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: MYSQL (Filess.io) //
+          ZERO_DATA_LOSS_PIPELINE &gt;&gt;&nbsp;</span>
+        <span>&gt;&gt; LOGGED_ENTRIES_SYNCHRONIZED // FASTMCP_v4.0_SERVER_ACTIVE // GROQ_LLM: openai/gpt-oss-120b //
+          SSE_STREAM_PORT: /api/slow-tool/stream // HIGH_HOURS_THRESHOLD: 10.0H // REPOSITORY: MYSQL (Filess.io) //
+          ZERO_DATA_LOSS_PIPELINE &gt;&gt;&nbsp;</span>
       </div>
     </div>
   </div>
@@ -224,7 +229,8 @@
         <div class="card-header">
           <div class="header-titles">
             <h2 class="section-title">// CHANNEL_01 :: RAW_ACTIVITY_LEDGER</h2>
-            <p class="section-subtitle">Chronological ledger of project activity, resource allocations, and logged hours from SQLite data store.</p>
+            <p class="section-subtitle">Chronological ledger of project activity, resource allocations, and logged hours
+              from SQLite data store.</p>
           </div>
           <div class="panel-rack-id">RACK: 0x01_REC</div>
         </div>
@@ -288,7 +294,8 @@
         <div class="card-header">
           <div class="header-titles">
             <h2 class="section-title">// CHANNEL_02 :: PROJECT_WORKLOAD_TELEMETRY</h2>
-            <p class="section-subtitle">Aggregated metrics, total hours distribution, and operator allocation per project pipeline.</p>
+            <p class="section-subtitle">Aggregated metrics, total hours distribution, and operator allocation per
+              project pipeline.</p>
           </div>
           <div class="panel-rack-id">RACK: 0x02_ANL</div>
         </div>
@@ -316,7 +323,8 @@
         <div class="card-header">
           <div class="header-titles">
             <h2 class="section-title">// CHANNEL_03 :: MANUAL_TRANSACTION_INGEST</h2>
-            <p class="section-subtitle">Commit billable task hours. High-hours transactions (>10h) trigger FastMCP confirmation interrupt.</p>
+            <p class="section-subtitle">Commit billable task hours. High-hours transactions (>10h) trigger FastMCP
+              confirmation interrupt.</p>
           </div>
           <div class="panel-rack-id">RACK: 0x03_ING</div>
         </div>
@@ -489,7 +497,8 @@
               <div>
                 <span class="pill-tag">[TOOL: GROQ_LLM_INFERENCE]</span>
                 <h3 class="studio-card-title">WEEKLY_WORK_SYNTHESIZER</h3>
-                <p class="studio-card-subtitle">Synthesize operator logged entries into executive summaries using Groq LLM.</p>
+                <p class="studio-card-subtitle">Synthesize operator logged entries into executive summaries using Groq
+                  LLM.</p>
               </div>
               <code class="tool-code-pill">fn: summarize_week()</code>
             </div>
@@ -508,7 +517,8 @@
                 <div class="quick-preset-chips" style="margin-top: 8px;">
                   <span class="preset-label">PRESETS:</span>
                   <button type="button" id="btnFillCurrentWeek" class="chip-preset-btn">[THIS_WEEK]</button>
-                  <button type="button" id="btnPresetDemoWeek" class="chip-preset-btn" data-date="2026-09-08">[2026-09-08_SEED]</button>
+                  <button type="button" id="btnPresetDemoWeek" class="chip-preset-btn"
+                    data-date="2026-09-08">[2026-09-08_SEED]</button>
                 </div>
               </div>
 
@@ -516,7 +526,8 @@
                 <div class="prompt-preview-title">
                   <span>[SYSTEM_PROMPT_INJECTION]</span>
                 </div>
-                <p class="prompt-preview-text">"Summarize this week's work for {employee_name} in two friendly sentences..."</p>
+                <p class="prompt-preview-text">"Summarize this week's work for {employee_name} in two friendly
+                  sentences..."</p>
               </div>
 
               <div style="margin-top: 18px;">
@@ -545,7 +556,8 @@
                 <span class="terminal-standby-glyph">&gt;_ AWAITING_QUERY</span>
               </div>
               <h4>NO INFERENCE DATA GENERATED</h4>
-              <p>Configure parameters on the left and trigger [DISPATCH_LLM_INFERENCE], or select a seed preset below:</p>
+              <p>Configure parameters on the left and trigger [DISPATCH_LLM_INFERENCE], or select a seed preset below:
+              </p>
               <div class="canvas-suggestions">
                 <button type="button" class="btn-suggestion" data-employee="Jason Gilchrist" data-date="2026-09-08">
                   <span>&gt; RUN: Jason Gilchrist (2026-09-08)</span>
@@ -577,7 +589,8 @@
               <div>
                 <span class="pill-tag">[PROTOCOL: CTX.ELICIT_GUARD]</span>
                 <h3 class="studio-card-title">INTERACTIVE_GUARD_SANDBOX</h3>
-                <p class="studio-card-subtitle">FastMCP <code>ctx.elicit</code> interrupts and pauses execution when daily hours exceed 10h.</p>
+                <p class="studio-card-subtitle">FastMCP <code>ctx.elicit</code> interrupts and pauses execution when
+                  daily hours exceed 10h.</p>
               </div>
               <code class="tool-code-pill">fn: log_time_with_confirmation()</code>
             </div>
@@ -689,7 +702,8 @@
             </div>
 
             <div id="guardPlaceholder" class="canvas-empty-state" style="padding: 24px 16px; margin-top: 12px;">
-              <p style="font-size: 12px; color: var(--text-muted); margin: 0;">&gt;&gt; TRIGGER [EXECUTE_GUARD_INTERRUPT] TO SIMULATE MCP SUSPENSION AND AUTHORIZATION MODAL.</p>
+              <p style="font-size: 12px; color: var(--text-muted); margin: 0;">&gt;&gt; TRIGGER
+                [EXECUTE_GUARD_INTERRUPT] TO SIMULATE MCP SUSPENSION AND AUTHORIZATION MODAL.</p>
             </div>
           </div>
 
@@ -706,7 +720,8 @@
                 <code class="tool-code-pill">fn: slow_tool(ctx: Context)</code>
               </div>
               <h3 class="studio-card-title">REAL-TIME_PROGRESS_STREAMING (SSE)</h3>
-              <p class="studio-card-subtitle">Asynchronous execution with incremental feedback via FastMCP <code>ctx.report_progress</code> and FastAPI SSE.</p>
+              <p class="studio-card-subtitle">Asynchronous execution with incremental feedback via FastMCP
+                <code>ctx.report_progress</code> and FastAPI SSE.</p>
             </div>
 
             <div class="stream-btn-group">
@@ -757,7 +772,8 @@
               <button id="btnClearConsoleBtn" class="terminal-clear-btn" type="button">[PURGE_BUFFER]</button>
             </div>
             <div id="slowToolTerminal" class="terminal-viewport">
-              <div class="term-line term-dim">[SYSTEM] FastMCP Stream Daemon ready. Click [DISPATCH_STREAM_JOB] to initiate telemetry feed...</div>
+              <div class="term-line term-dim">[SYSTEM] FastMCP Stream Daemon ready. Click [DISPATCH_STREAM_JOB] to
+                initiate telemetry feed...</div>
             </div>
           </div>
         </div>
@@ -773,7 +789,8 @@
                 <span class="registry-spec-pill">ENDPOINT: /mcp</span>
               </div>
               <h3 class="studio-card-title">ACTIVE_TOOL_REGISTRY_&amp;_SCHEMAS</h3>
-              <p class="studio-card-subtitle">Exposed tools via Model Context Protocol for AI agents, orchestration graphs, and developer introspection.</p>
+              <p class="studio-card-subtitle">Exposed tools via Model Context Protocol for AI agents, orchestration
+                graphs, and developer introspection.</p>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
               <span id="mcpToolsCountBadge" class="registry-counter-badge">[7_TOOLS_LOADED]</span>
