@@ -130,27 +130,112 @@ function showToast(message, type = 'success', duration = 3500) {
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
+  toast.setAttribute('role', 'alert');
   
   let iconSvg = '';
   if (type === 'success') {
-    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--emerald-500);flex-shrink:0"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--status-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
   } else if (type === 'error') {
-    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--coral-500);flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--status-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+  } else if (type === 'warning') {
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ffb300" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
   } else {
-    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--amber-500);flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+    iconSvg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--hazard-orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
   }
 
-  toast.innerHTML = `
-    ${iconSvg}
-    <span>${escapeHtml(message)}</span>
-  `;
+  const iconWrapper = document.createElement('div');
+  iconWrapper.className = 'toast-icon';
+  iconWrapper.innerHTML = iconSvg;
 
+  const msgSpan = document.createElement('span');
+  msgSpan.className = 'toast-message';
+  msgSpan.textContent = message;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'toast-close-btn';
+  closeBtn.setAttribute('aria-label', 'Close notification');
+  closeBtn.setAttribute('title', 'Dismiss notification');
+  closeBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+
+  toast.appendChild(iconWrapper);
+  toast.appendChild(msgSpan);
+  toast.appendChild(closeBtn);
+
+  if (duration > 0 && duration !== Infinity) {
+    const progressBar = document.createElement('div');
+    progressBar.className = 'toast-progress';
+    progressBar.style.animationDuration = `${duration}ms`;
+    toast.appendChild(progressBar);
+  }
+
+  let isClosed = false;
+  let timerId = null;
+  let remainingMs = duration;
+  let startTime = Date.now();
+
+  function closeToast() {
+    if (isClosed) return;
+    isClosed = true;
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+    toast.classList.add('toast-dismissing');
+
+    let removed = false;
+    const finish = () => {
+      if (!removed) {
+        removed = true;
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }
+    };
+
+    toast.addEventListener('animationend', finish, { once: true });
+    // Failsafe in case animationend does not fire
+    setTimeout(finish, 320);
+  }
+
+  function startTimer() {
+    if (duration > 0 && duration !== Infinity && !isClosed) {
+      startTime = Date.now();
+      timerId = setTimeout(closeToast, remainingMs);
+    }
+  }
+
+  function pauseTimer() {
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
+      remainingMs -= (Date.now() - startTime);
+      if (remainingMs < 200) remainingMs = 200;
+    }
+  }
+
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeToast();
+  });
+
+  toast.addEventListener('mouseenter', () => {
+    pauseTimer();
+    const progress = toast.querySelector('.toast-progress');
+    if (progress) progress.style.animationPlayState = 'paused';
+  });
+
+  toast.addEventListener('mouseleave', () => {
+    startTimer();
+    const progress = toast.querySelector('.toast-progress');
+    if (progress) progress.style.animationPlayState = 'running';
+  });
+
+  startTimer();
+
+  toast.close = closeToast;
   container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.animation = 'slideToastOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-    toast.addEventListener('animationend', () => toast.remove());
-  }, duration);
+  return toast;
 }
 
 // ==========================================================================
