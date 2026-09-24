@@ -64,7 +64,7 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": 0,
             "total_hours": 0.0,
             "summary": f"No entries found for {employee_name} starting {week_start}.",
-            "model": "openai/gpt-oss-20b",
+            "model": "openai/gpt-oss-120b",
         }
 
     total_hours = sum(e["hours"] for e in entries)
@@ -80,12 +80,12 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": len(entries),
             "total_hours": total_hours,
             "summary": "GROQ_API_KEY is not configured on the server. Please add it to your .env file.",
-            "model": "openai/gpt-oss-20b",
+            "model": "openai/gpt-oss-120b",
         }
 
     try:
         response = groq_client.responses.create(
-            model="openai/gpt-oss-20b",
+            model="openai/gpt-oss-120b",
             input=f"Summarize this week's work for {employee_name} in two friendly sentences:\n\n{entries_text}",
         )
         text = ""
@@ -101,7 +101,7 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": len(entries),
             "total_hours": total_hours,
             "summary": text or "Could not generate a summary.",
-            "model": "openai/gpt-oss-20b",
+            "model": "openai/gpt-oss-120b",
         }
     except Exception as err:
         return {
@@ -111,7 +111,7 @@ def generate_week_summary(employee_name: str, week_start: str) -> dict:
             "entries_count": len(entries),
             "total_hours": total_hours,
             "summary": f"AI service error: {str(err)}",
-            "model": "openai/gpt-oss-20b",
+            "model": "openai/gpt-oss-120b",
         }
 
 
@@ -371,7 +371,7 @@ def api_mcp_tools():
             },
             {
                 "name": "summarize_week",
-                "description": "Summarize one employee's week in plain language, using an LLM (Groq openai/gpt-oss-20b).",
+                "description": "Summarize one employee's week in plain language, using an LLM (Groq openai/gpt-oss-120b).",
                 "parameters": ["employee_name", "week_start"],
                 "category": "ai",
             },
